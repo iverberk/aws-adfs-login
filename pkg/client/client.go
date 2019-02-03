@@ -37,9 +37,10 @@ func LoadAWSRoles(adfsHost, user, password string) (aws.Roles, error) {
 		return nil, fmt.Errorf("cannot load login form: %v", err)
 	}
 
+	// extra MFA validation step
 	contextForm, err := loadContextForm(c, loginForm)
 	if err != nil {
-		return nil, fmt.Errorf("cannot load login form: %v", err)
+		return nil, fmt.Errorf("cannot load context form: %v", err)
 	}
 	return saml.LoadAWSRoles(c, contextForm)
 }
@@ -62,17 +63,10 @@ func getLoginUrl(adfsHost string) string {
 
 func newHttpClient() *http.Client {
 
-	proxyURL, err := url.Parse("http://127.0.0.1:8080")
-	if err != nil {
-		log.Println(err)
-	}
-
 	transport := &http.Transport{
 		TLSClientConfig: &tls.Config{
-			Renegotiation:      tls.RenegotiateFreelyAsClient,
-			InsecureSkipVerify: true,
+			Renegotiation: tls.RenegotiateFreelyAsClient,
 		},
-		Proxy: http.ProxyURL(proxyURL),
 	}
 	// make timeout generous when waiting for mfa duo push notifications
 	jar, _ := cookiejar.New(nil)
