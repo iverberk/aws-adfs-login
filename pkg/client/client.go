@@ -53,7 +53,10 @@ func getLoginUrl(adfsHost string) string {
 
 func newHttpClient() *http.Client {
 
+	transport := &http.Transport{
+		TLSClientConfig: &tls.Config{Renegotiation: tls.RenegotiateFreelyAsClient},
+	}
 	// make timeout generous when waiting for mfa duo push notifications
 	jar, _ := cookiejar.New(nil)
-	return &http.Client{Jar: jar, Timeout: 20 * time.Second}
+	return &http.Client{Transport: transport, Jar: jar, Timeout: 20 * time.Second}
 }
