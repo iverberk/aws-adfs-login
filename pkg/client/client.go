@@ -62,24 +62,20 @@ func getLoginUrl(adfsHost string) string {
 
 func newHttpClient() *http.Client {
 
-	transport := &http.Transport{
-		TLSClientConfig: &tls.Config{
-			Renegotiation:      tls.RenegotiateFreelyAsClient,
-			InsecureSkipVerify: true,
-		},
-	}
-	// make timeout generous when waiting for mfa duo push notifications
-	jar, _ := cookiejar.New(nil)
-
 	proxyURL, err := url.Parse("http://127.0.0.1:8080")
 	if err != nil {
 		log.Println(err)
 	}
 
-	return &http.Client{
-		Transport: transport,
-		Jar:       jar,
-		Timeout:   20 * time.Second,
-		Proxy:     http.ProxyURL(proxyURL),
+	transport := &http.Transport{
+		TLSClientConfig: &tls.Config{
+			Renegotiation:      tls.RenegotiateFreelyAsClient,
+			InsecureSkipVerify: true,
+		},
+		Proxy: http.ProxyURL(proxyURL),
 	}
+	// make timeout generous when waiting for mfa duo push notifications
+	jar, _ := cookiejar.New(nil)
+
+	return &http.Client{Transport: transport, Jar: jar, Timeout: 20 * time.Second}
 }
