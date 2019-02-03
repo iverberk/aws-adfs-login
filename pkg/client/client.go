@@ -16,8 +16,10 @@ package client
 import (
 	"crypto/tls"
 	"fmt"
+	"log"
 	"net/http"
 	"net/http/cookiejar"
+	"net/url"
 	"strings"
 	"time"
 
@@ -61,9 +63,23 @@ func getLoginUrl(adfsHost string) string {
 func newHttpClient() *http.Client {
 
 	transport := &http.Transport{
-		TLSClientConfig: &tls.Config{Renegotiation: tls.RenegotiateFreelyAsClient},
+		TLSClientConfig: &tls.Config{
+			Renegotiation:      tls.RenegotiateFreelyAsClient,
+			InsecureSkipVerify: true,
+		},
 	}
 	// make timeout generous when waiting for mfa duo push notifications
 	jar, _ := cookiejar.New(nil)
-	return &http.Client{Transport: transport, Jar: jar, Timeout: 20 * time.Second}
+
+	proxyURL, err := url.Parse("http://127.0.0.1:8080")
+	if err != nil {
+		log.Println(err)
+	}
+
+	return &http.Client{
+		Transport: transport,
+		Jar:       jar,
+		Timeout:   20 * time.Second,
+		Proxy:     http.ProxyURL(proxyURL),
+	}
 }
