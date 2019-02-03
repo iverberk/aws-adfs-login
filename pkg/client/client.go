@@ -14,14 +14,16 @@ limitations under the License.
 package client
 
 import (
+	"crypto/tls"
 	"fmt"
-	"github.com/HotelsDotCom/aws-adfs-login/pkg/aws"
-	"github.com/HotelsDotCom/aws-adfs-login/pkg/mfa/duo"
-	"github.com/HotelsDotCom/aws-adfs-login/pkg/saml"
 	"net/http"
 	"net/http/cookiejar"
 	"strings"
 	"time"
+
+	"github.com/HotelsDotCom/aws-adfs-login/pkg/aws"
+	"github.com/HotelsDotCom/aws-adfs-login/pkg/mfa/duo"
+	"github.com/HotelsDotCom/aws-adfs-login/pkg/saml"
 )
 
 func LoadAWSRoles(adfsHost, user, password string) (aws.Roles, error) {
@@ -53,7 +55,10 @@ func getLoginUrl(adfsHost string) string {
 
 func newHttpClient() *http.Client {
 
+	transport := &http.Transport{
+		TLSClientConfig: &tls.Config{Renegotiation: tls.RenegotiateFreelyAsClient},
+	}
 	// make timeout generous when waiting for mfa duo push notifications
 	jar, _ := cookiejar.New(nil)
-	return &http.Client{Jar: jar, Timeout: 20 * time.Second}
+	return &http.Client{Transport: transport, Jar: jar, Timeout: 20 * time.Second}
 }
