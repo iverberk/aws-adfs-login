@@ -16,10 +16,8 @@ package client
 import (
 	"crypto/tls"
 	"fmt"
-	"log"
 	"net/http"
 	"net/http/cookiejar"
-	"net/url"
 	"strings"
 	"time"
 
