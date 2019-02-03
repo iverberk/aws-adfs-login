@@ -15,10 +15,11 @@ package client
 
 import (
 	"errors"
-	"github.com/HotelsDotCom/aws-adfs-login/pkg/html"
-	"github.com/PuerkitoBio/goquery"
 	"net/http"
 	"strings"
+
+	"github.com/HotelsDotCom/aws-adfs-login/pkg/html"
+	"github.com/PuerkitoBio/goquery"
 )
 
 func loadLoginForm(c *http.Client, url string, username, password string) (html.Form, error) {
@@ -80,4 +81,53 @@ func selectLoginForm(r *http.Response) (*goquery.Selection, error) {
 		return nil, errors.New("cannot find login form in the response")
 	}
 	return loginFormSelection, nil
+}
+
+func loadContextForm(c *http.Client, loginForm html.Form) (html.Form, error) {
+	r, err := c.Post(loginForm.Action, "application/x-www-form-urlencoded", strings.NewReader(loginForm.Values.Encode()))
+	if err != nil {
+		return html.Form{}, err
+	}
+
+	contextFormSelection, err := selectContextForm(r)
+	if err != nil {
+		return html.Form{}, err
+	}
+
+	form, err := html.LoadForm(r.Request.URL, contextFormSelection)
+	if err != nil {
+		return html.Form{}, err
+	}
+
+	return form, nil
+}
+
+func selectContextForm(r *http.Response) (*goquery.Selection, error) {
+
+	doc, err := html.LoadDocument(r)
+	if err != nil {
+		return nil, err
+	}
+
+	var contextFormSelection *goquery.Selection
+	doc.Find("form").Each(func(i int, formDoc *goquery.Selection) {
+		if contextFormSelection != nil {
+			return
+		}
+		formDoc.Find("input").Each(func(_ int, inputDoc *goquery.Selection) {
+			if contextFormSelection != nil {
+				return
+			}
+			if name, ok := inputDoc.Attr("name"); ok {
+				if strings.Contains(strings.ToLower(name), "context") {
+					contextFormSelection = formDoc
+				}
+			}
+		})
+	})
+
+	if contextFormSelection == nil {
+		return nil, errors.New("cannot find context form in the response")
+	}
+	return contextFormSelection, nil
 }

@@ -60,13 +60,7 @@ func LoadAWSRoles(c *http.Client, requester AssertionRequester) (aws.Roles, erro
 
 func loadSamlAssertionForm(c *http.Client, requester AssertionRequester) (html.Form, error) {
 
-	loginResponse, err := requester.Submit(c)
-	if err != nil {
-		return html.Form{}, err
-	}
-
-	// load response
-	doc, err := html.LoadDocument(loginResponse)
+	resp, err := requester.Submit(c)
 	if err != nil {
 		return html.Form{}, err
 	}

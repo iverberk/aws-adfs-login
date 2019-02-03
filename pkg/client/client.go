@@ -34,7 +34,12 @@ func LoadAWSRoles(adfsHost, user, password string) (aws.Roles, error) {
 	if err != nil {
 		return nil, fmt.Errorf("cannot load login form: %v", err)
 	}
-	return saml.LoadAWSRoles(c, loginForm)
+
+	contextForm, err := loadContextForm(c, loginForm)
+	if err != nil {
+		return nil, fmt.Errorf("cannot load login form: %v", err)
+	}
+	return saml.LoadAWSRoles(c, contextForm)
 }
 
 func LoadDuoDevices(adfsHost, user, password string) (duo.Devices, error) {
