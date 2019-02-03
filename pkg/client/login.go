@@ -84,7 +84,11 @@ func selectLoginForm(r *http.Response) (*goquery.Selection, error) {
 }
 
 func loadContextForm(c *http.Client, loginForm html.Form) (html.Form, error) {
-	r, err := c.Post(loginForm.Action, "application/x-www-form-urlencoded", strings.NewReader(loginForm.Values.Encode()))
+	r, err := c.Post(
+		loginForm.Action.String(),
+		"application/x-www-form-urlencoded",
+		strings.NewReader(loginForm.Values.Encode()),
+	)
 	if err != nil {
 		return html.Form{}, err
 	}
